@@ -1,48 +1,19 @@
 import BigNumber from "bignumber.js";
 import { Twisters } from "twisters";
 import * as acc from "./src/account.js";
-import { checkNearBalance } from "./src/near_repo.js";
 import { checkEthBalance } from "./src/eth_repo.js";
-import { checkEvmosBalance } from "./src/evmos_repo.js";
 import { checkSTRKBalance } from "./src/strk_repo.js"
 import { checkAXLBalance } from "./src/axl_repo.js"
 
-const [nearAccountId, nearPrivateKey] = [
-  acc.nearAccountMainnetID,
-  acc.nearAccountMainnetPK,
-];
+
 
 const twisters = new Twisters();
 let ethExecuted = 1;
-let nearExecuted = 1;
 let evmosExecuted = 1;
 let strkExecuted = 1;
 let axlExecuted = 1;
 const interval = 3; //interval list in sec
 
-export const getNearWalletBalance = () => {
-  return new Promise((resolve, reject) => {
-    checkNearBalance(nearAccountId, nearPrivateKey)
-      .then(({ balance, account }) => {
-        twisters.put(nearAccountId, {
-          text: `
-== NEAR account balance Information ==
-Account : ${nearAccountId}
-Total : ${BigNumber(balance.total).dividedBy(1e24)} NEAR
-State Staked : ${BigNumber(balance.stateStaked).dividedBy(1e24)} NEAR
-Staked : ${BigNumber(balance.staked).dividedBy(1e24)} NEAR
-Available : ${BigNumber(balance.available).dividedBy(1e24)} NEAR
-Executed : ${nearExecuted}
-`,
-        });
-        resolve();
-      })
-      .catch((error) => {
-        console.error("Error occurred:", error);
-        reject(error);
-      });
-  });
-};
 
 export const getEthWalletBalance = () => {
   return new Promise((resolve, reject) => {
@@ -106,26 +77,6 @@ Executed : ${axlExecuted}
   });
 };
 
-export const getEvmosWalletBalance = () => {
-  return new Promise((resolve, reject) => {
-    checkEvmosBalance(acc.ethEvmosAddress)
-      .then((balance) => {
-        twisters.put(acc.ethEvmosAddress + "evmos", {
-          text: `
-== EVMOS account balance Information ==
-Account : ${acc.ethEvmosAddress}
-EVMOS Balance : ${balance}
-Executed : ${ethExecuted}
-`,
-        });
-        resolve();
-      })
-      .catch((error) => {
-        console.error("Error occurred:", error);
-        reject(error);
-      });
-  });
-};
 
 const handleInterrupt = () => {
   console.log("User interrupted. Exiting...");
@@ -137,13 +88,7 @@ process.on("SIGINT", handleInterrupt);
   try {
     while (true) {
       try {
-        if (
-          (acc.nearAccountMainnetID != "") &
-          (acc.nearAccountMainnetPK != "")
-        ) {
-          await getNearWalletBalance();
-          nearExecuted += 1;
-        }
+
         if (acc.ethEvmosAddress != "") {
           await getEthWalletBalance();
           ethExecuted += 1;
